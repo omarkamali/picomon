@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=65", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "picomon"
+version = "0.1.0"
+description = "Minimal curses dashboard for monitoring AMD GPUs via amd-smi"
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [
+  { name = "Omar Kamali", email = "picomon@omarkama.li" }
+]
+requires-python = ">=3.9"
+keywords = ["amd", "gpu", "monitor", "cli", "curses"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Environment :: Console",
+  "Intended Audience :: System Administrators",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: POSIX",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: System :: Monitoring",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/omarkamali/picomon"
+Issues = "https://github.com/omarkamali/picomon/issues"
+Repository = "https://github.com/omarkamali/picomon"
+
+[project.scripts]
+picomon = "picomon.monitor:run"
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=7",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
