@@ -19,11 +19,11 @@ _One‑liner describing the observed problem._
 
 | Item | Version / value |
 | --- | --- |
-| picomon version (`picomon --version`) | |
-| Python version (`python --version`) | |
-| OS / Distro | |
-| `amd-smi` version (`amd-smi --version`) | |
-| Terminal emulator | |
+| picomon version (`picomon --version`) | <your version> |
+| Python version (`python --version`) | <your version> |
+| OS / Distro | <your os and version> |
+| `amd-smi` version (`amd-smi --version`) | <your version> |
+| Terminal emulator | <your terminal emulator and version> |
 
 ## Metrics command output
 

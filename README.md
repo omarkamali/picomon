@@ -22,18 +22,25 @@ It hasn't been tested on all AMD GPUs. If it fails to run on your GPU, please op
 pip install picomon
 ```
 
-Development installs (for local hacking) can use editable mode:
-
-```shell
-pip install -e '.[dev]'
-```
-
 ## Usage
 
 After installation, run the CLI:
 
 ```shell
 picomon
+```
+
+```
+$ picomon
+
+┌──────────────────────────────────────────┐  ┌──────────────────────────────────────────┐
+│ GPU 0  GFX  42%  UMC  21%                │  │ GPU 1  GFX  78%  UMC  66%                │
+│ PWR 135/250W (54%)  VRAM 10.0/16.0GB 62% │  │ PWR 210/250W (84%)  VRAM 14.5/16.0GB 90% │
+│                                          │  │                                          │
+│ GFX ▁▂▂▃▄▄▅▆▆▇█▇▆▅▄▃▂▁                   │  │ GFX ▂▃▄▅▆▇██▇▆▅▄▂▂▃▅▆                    │
+│ PWR ▁▁▂▂▃▄▄▅▆▇██▇▆▅▄▂▁                   │  │ PWR ▂▂▃▄▅▆▇██▇▆▅▄▃▂▂▃                    │
+│ VRM ▁▁▂▂▃▄▄▅▆▇███▇▆▅▄▂                   │  │ VRM ▂▃▄▅▆▆▇███▇▆▅▄▃▂▂▃                   │
+└──────────────────────────────────────────┘  └──────────────────────────────────────────┘
 ```
 
 Key bindings:
