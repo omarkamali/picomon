@@ -6,7 +6,7 @@ Homepage: <https://omarkamali.github.io/picomon/>
 
 ## Why?
 
-I like nvtop but the asserts kept crashing it on some AMD devices. picomon is a lightweight alternative that just polls metrics and renders them as sparklines, trading off ironclad checks for more reliability.
+I like nvtop but the asserts kept crashing it on some AMD devices. picomon is a lightweight alternative that just polls metrics and renders them as sparklines, trading off ironclad accuracy checks for more reliability.
 
 It hasn't been tested on all AMD GPUs. If it fails to run on your GPU, please open a new issue using [this template](https://github.com/omarkamali/picomon/issues/new?assignees=&labels=bug&template=bug_report.md&title=%5BBug%5D).
 
