@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "picomon"
-version = "0.1.0"
+version = "0.1.1"
 description = "Minimal curses dashboard for monitoring AMD GPUs via amd-smi"
 readme = "README.md"
 license = { file = "LICENSE" }
