@@ -26,10 +26,6 @@ pip install picomon
 
 After installation, run the CLI:
 
-```shell
-picomon
-```
-
 ```
 $ picomon
 
