@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>picomon</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #050506;
+        --card: #0b0d13;
+        --card-border: #1c2233;
+        --text: #f1f6ff;
+        --muted: #a0a6b8;
+        --accent: #59d3ff;
+        --accent-soft: rgba(89, 211, 255, 0.08);
+        --surface: #121520;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        background: radial-gradient(circle at top right, rgba(89,211,255,0.25), rgba(5,5,6,0)) var(--bg);
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 3rem 1.5rem;
+      }
+      main {
+        width: min(960px, 100%);
+        background: linear-gradient(145deg, rgba(25,28,45,0.85), rgba(10,12,20,0.85));
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 28px;
+        box-shadow: 0 20px 60px rgba(2,4,15,0.65), inset 0 0 0 1px rgba(255,255,255,0.02);
+        padding: 3rem;
+        backdrop-filter: blur(16px);
+      }
+      header {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 2.5rem;
+      }
+      h1 {
+        font-size: clamp(2.2rem, 3vw, 2.8rem);
+        margin: 0;
+        letter-spacing: -0.04em;
+      }
+      header p {
+        color: var(--muted);
+        margin: 0;
+        max-width: 440px;
+      }
+      .button-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+      }
+      a.button {
+        text-decoration: none;
+        padding: 0.85rem 1.6rem;
+        border-radius: 999px;
+        font-weight: 600;
+        color: var(--bg);
+        background: var(--accent);
+        box-shadow: 0 12px 25px rgba(89,211,255,0.25);
+      }
+      a.button.secondary {
+        background: rgba(255,255,255,0.05);
+        color: var(--text);
+        border: 1px solid rgba(255,255,255,0.08);
+        box-shadow: none;
+      }
+      .terminal {
+        margin: 2.5rem 0;
+        border-radius: 20px;
+        background: var(--surface);
+        border: 1px solid var(--card-border);
+        box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+        overflow: hidden;
+        font-family: 'JetBrains Mono', 'SFMono-Regular', Menlo, Consolas, monospace;
+      }
+      .terminal-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1rem;
+        background: radial-gradient(circle at top left, rgba(89,211,255,0.18), transparent) rgba(5,6,12,0.9);
+        border-bottom: 1px solid rgba(255,255,255,0.04);
+      }
+      .dot {
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+      }
+      .dot.red { background: #ff5f56; }
+      .dot.yellow { background: #ffbd2e; }
+      .dot.green { background: #27c93f; }
+      .terminal-title {
+        margin-left: auto;
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+      .terminal-body {
+        padding: 1.75rem;
+        background: repeating-linear-gradient(
+          transparent,
+          transparent 48px,
+          rgba(255,255,255,0.01) 48px,
+          rgba(255,255,255,0.01) 96px
+        );
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1.5rem;
+      }
+      .panel {
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 16px;
+        padding: 1.25rem;
+        background: radial-gradient(circle at top, rgba(89,211,255,0.08), rgba(12,14,20,0.65));
+        min-height: 220px;
+      }
+      .panel h3 {
+        font-size: 1rem;
+        margin: 0 0 1rem 0;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .spark {
+        font-size: 1.5rem;
+        letter-spacing: 0.05em;
+      }
+      .spark-label {
+        font-size: 0.9rem;
+        color: var(--muted);
+        display: block;
+        margin-bottom: 0.35rem;
+      }
+      .meta {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1rem;
+        margin-top: 3rem;
+      }
+      .meta-card {
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 14px;
+        padding: 1.25rem;
+        background: rgba(255,255,255,0.015);
+      }
+      .meta-card small {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--muted);
+      }
+      .meta-card strong {
+        display: block;
+        margin-top: 0.45rem;
+        font-size: 1.1rem;
+      }
+      footer {
+        margin-top: 2.5rem;
+        font-size: 0.9rem;
+        color: var(--muted);
+        text-align: center;
+      }
+      footer a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      @media (max-width: 720px) {
+        main { padding: 2rem; }
+        .terminal-body { padding: 1.25rem; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div>
+          <h1>picomon</h1>
+          <p>AMD GPU telemetry without the noise. picomon talks to <code>amd-smi</code>, tracks power, VRAM, and engine activity, and renders it in a focused two-column TUI.</p>
+        </div>
+        <div class="button-row">
+          <a class="button" href="https://github.com/omarkamali/picomon">GitHub</a>
+          <a class="button secondary" href="https://pypi.org/project/picomon/">PyPI</a>
+        </div>
+      </header>
+
+      <section class="terminal">
+        <div class="terminal-header">
+          <span class="dot red"></span>
+          <span class="dot yellow"></span>
+          <span class="dot green"></span>
+          <span class="terminal-title">picomon (last 30 min)</span>
+        </div>
+        <div class="terminal-body">
+          <div class="grid">
+            <article class="panel">
+              <h3>GPU 0 / Navi 21</h3>
+              <div class="spark-label">GFX 42% · UMC 21%</div>
+              <div class="spark">▁▂▂▃▄▄▅▆▆▇█▇▆▅▄▃▂▁</div>
+              <div class="spark-label">Power 135 / 250 W</div>
+              <div class="spark">▁▁▂▂▃▄▄▅▆▇█▇▆▅▄▂</div>
+              <div class="spark-label">VRAM 10.2 / 16 GB</div>
+              <div class="spark">▁▁▂▂▃▄▅▆▇██▇▆▅▄▂</div>
+            </article>
+            <article class="panel">
+              <h3>GPU 1 / Navi 31</h3>
+              <div class="spark-label">GFX 78% · UMC 66%</div>
+              <div class="spark">▂▃▄▅▆▇██▇▆▅▄▂▂▃▅</div>
+              <div class="spark-label">Power 210 / 250 W</div>
+              <div class="spark">▂▂▃▄▅▆▇██▇▆▅▄▃▂▂</div>
+              <div class="spark-label">VRAM 14.5 / 16 GB</div>
+              <div class="spark">▂▃▄▅▆▆▇███▇▆▅▄▃▂</div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="meta">
+        <div class="meta-card">
+          <small>requirements</small>
+          <strong>Python 3.9+, amd-smi on PATH, ANSI terminal.</strong>
+        </div>
+        <div class="meta-card">
+          <small>install</small>
+          <strong><code>pip install picomon</code></strong>
+        </div>
+        <div class="meta-card">
+          <small>usage</small>
+          <strong><code>picomon --update-interval 2 --history-minutes 30</code></strong>
+        </div>
+        <div class="meta-card">
+          <small>author</small>
+          <strong>Omar Kamali · MIT License</strong>
+        </div>
+      </section>
+
+      <footer>
+        Designed for minimal fuss. Bugs? <a href="https://github.com/omarkamali/picomon/issues/new?assignees=&labels=bug&template=bug_report.md&title=%5BBug%5D">Open an issue.</a>
+      </footer>
+    </main>
+  </body>
+</html>
