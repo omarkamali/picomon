@@ -28,6 +28,7 @@ class GPUHistory:
     """Static info + rolling metric history for one GPU."""
 
     def __init__(self, max_points: int):
+        self.hip_id: int | None = None
         self.vram_total_mb: float = 0.0
         self.power_limit_w: float = 0.0
 

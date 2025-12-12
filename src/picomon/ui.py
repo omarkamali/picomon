@@ -123,8 +123,14 @@ def render_loop(
         col_w = (max_x - 3) // total_cols
         col_x = [1, 1 + col_w + 1]
 
-        gpu_ids = sorted(gpus.keys())
-        for idx, gpu_id in enumerate(gpu_ids):
+        sorted_gpus = sorted(
+            gpus.items(),
+            key=lambda item: (
+                item[1].hip_id if item[1].hip_id is not None else item[0],
+                item[0],
+            ),
+        )
+        for idx, (gpu_id, hist) in enumerate(sorted_gpus):
             col = 0 if idx < 4 else 1
             row_idx = idx if idx < 4 else idx - 4
             top = 2 + row_idx * box_h
@@ -133,7 +139,7 @@ def render_loop(
 
             x = col_x[col]
             win = stdscr.derwin(box_h, col_w, top, x)
-            draw_gpu_box(win, gpu_id, gpus[gpu_id])
+            draw_gpu_box(win, gpu_id, hist)
 
         stdscr.refresh()
 

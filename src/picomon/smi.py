@@ -29,7 +29,7 @@ def _default_runner(args: Sequence[str], *, timeout: float) -> str:
 
 def _run_json(
     args: Sequence[str], *, timeout: float, runner: CommandRunner
-) -> dict | None:
+) -> dict | list | None:
     try:
         output = runner(args, timeout=timeout)
     except Exception as exc:  # pragma: no cover - just log
@@ -41,6 +41,48 @@ def _run_json(
     except json.JSONDecodeError as exc:  # pragma: no cover - unexpected
         logger.debug("Failed to parse amd-smi json: %s", exc)
         return None
+
+
+def _parse_int(value) -> int | None:
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _load_gpu_identity_map(
+    config: PicomonConfig, runner: CommandRunner
+) -> Dict[int, int]:
+    data = _run_json(
+        ["amd-smi", "list", "--json"],
+        timeout=config.static_timeout,
+        runner=runner,
+    )
+    if data is None:
+        return {}
+
+    if isinstance(data, list):
+        entries = data
+    elif isinstance(data, dict):
+        entries = data.get("gpu_data", [])
+    else:
+        return {}
+
+    mapping: Dict[int, int] = {}
+    for entry in entries:
+        if not isinstance(entry, dict):
+            continue
+        gpu_idx = _parse_int(entry.get("gpu"))
+        hip_id = entry.get("hip_id")
+        node_id = entry.get("node_id")
+        hip_idx = _parse_int(hip_id)
+        if hip_idx is None:
+            hip_idx = _parse_int(node_id)
+        if gpu_idx is None or hip_idx is None:
+            continue
+        mapping[gpu_idx] = hip_idx
+
+    return mapping
 
 
 def load_static_info(
@@ -57,6 +99,7 @@ def load_static_info(
     if not data:
         return {}
 
+    hip_ids = _load_gpu_identity_map(config, runner)
     gpus: Dict[int, GPUHistory] = {}
     for entry in data.get("gpu_data", []):
         gpu_id = entry.get("gpu")
@@ -68,6 +111,7 @@ def load_static_info(
             continue
 
         hist = GPUHistory(config.max_points)
+        hist.hip_id = hip_ids.get(gpu_idx)
 
         vram_block = entry.get("vram", {}) or {}
         size = vram_block.get("size")
