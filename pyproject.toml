@@ -4,15 +4,15 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "picomon"
-version = "0.1.2"
-description = "Minimal curses dashboard for monitoring AMD GPUs via amd-smi"
+version = "0.2.0"
+description = "Beautiful TUI dashboard for monitoring GPUs (AMD, NVIDIA, Apple Silicon)"
 readme = "README.md"
 license = { file = "LICENSE" }
 authors = [
   { name = "Omar Kamali", email = "picomon@omarkama.li" }
 ]
 requires-python = ">=3.9"
-keywords = ["amd", "gpu", "monitor", "cli", "curses"]
+keywords = ["gpu", "monitor", "cli", "tui", "textual", "amd", "nvidia", "apple-silicon"]
 classifiers = [
   "Development Status :: 4 - Beta",
   "Environment :: Console",
@@ -28,7 +28,11 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
   "Topic :: System :: Monitoring",
 ]
-dependencies = []
+dependencies = [
+  "textual>=0.89.0",
+  "psutil>=5.9.0",
+  "pyperclip>=1.8.0",
+]
 
 [project.urls]
 Homepage = "https://github.com/omarkamali/picomon"

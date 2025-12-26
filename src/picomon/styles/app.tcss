@@ -1,0 +1,372 @@
+/* Picomon Textual Styles */
+
+/* === Base Theme === */
+$primary: #e94560;
+$secondary: #0f3460;
+$accent: #16c79a;
+$warning: #f39c12;
+$danger: #e74c3c;
+$background: #1a1a2e;
+$surface: #16213e;
+$surface-light: #1f3055;
+$text: #eaeaea;
+$text-muted: #888888;
+
+/* === Screen Base === */
+Screen {
+    background: $background;
+}
+
+/* === Header === */
+#header {
+    dock: top;
+    height: 3;
+    background: $surface;
+    border-bottom: solid $primary;
+}
+
+#header-title {
+    content-align: left middle;
+    padding: 0 2;
+    color: $primary;
+    text-style: bold;
+}
+
+#header-subtitle {
+    content-align: left middle;
+    padding: 0 0 0 1;
+    color: $text-muted;
+}
+
+#header-info {
+    content-align: right middle;
+    padding: 0 2;
+    color: $text-muted;
+}
+
+/* === Navigation Tabs === */
+#nav-tabs {
+    dock: top;
+    height: 1;
+    background: $surface-light;
+}
+
+.nav-tab {
+    padding: 0 2;
+    color: $text-muted;
+}
+
+.nav-tab:hover {
+    background: $surface;
+    color: $text;
+}
+
+.nav-tab.-active {
+    background: $primary;
+    color: $text;
+    text-style: bold;
+}
+
+/* === Footer === */
+#footer {
+    dock: bottom;
+    height: 1;
+    background: $surface;
+    border-top: solid $secondary;
+}
+
+#footer-stats {
+    content-align: left middle;
+    padding: 0 2;
+    color: $text;
+}
+
+#footer-help {
+    content-align: right middle;
+    padding: 0 2;
+    color: $text-muted;
+}
+
+/* === Main Content === */
+#main-content {
+    padding: 1;
+}
+
+/* === GPU Card Widget === */
+GPUCard {
+    height: auto;
+    min-height: 12;
+    margin: 1;
+    padding: 1;
+    background: $surface;
+    border: solid $secondary;
+    border-title-color: $primary;
+    border-title-style: bold;
+}
+
+GPUCard:hover {
+    border: solid $primary;
+}
+
+GPUCard:focus {
+    border: solid $accent;
+}
+
+GPUCard .gpu-name {
+    color: $text-muted;
+    padding-bottom: 1;
+}
+
+GPUCard .metric-row {
+    height: 1;
+    margin-bottom: 1;
+}
+
+GPUCard .metric-label {
+    width: 6;
+    color: $text-muted;
+}
+
+GPUCard .metric-value {
+    width: 6;
+    text-align: right;
+    color: $text;
+}
+
+GPUCard .sparkline-container {
+    height: 2;
+    margin-top: 1;
+}
+
+/* === Metric Bar === */
+MetricBar {
+    height: 1;
+}
+
+MetricBar .bar-track {
+    background: $surface-light;
+}
+
+MetricBar .bar-fill {
+    background: $accent;
+}
+
+MetricBar .bar-fill.-warning {
+    background: $warning;
+}
+
+MetricBar .bar-fill.-danger {
+    background: $danger;
+}
+
+/* === Sparkline === */
+Sparkline {
+    height: 2;
+    color: $accent;
+}
+
+Sparkline.-gfx {
+    color: $accent;
+}
+
+Sparkline.-power {
+    color: $warning;
+}
+
+Sparkline.-vram {
+    color: #3498db;
+}
+
+Sparkline.-umc {
+    color: #9b59b6;
+}
+
+/* === System Screen === */
+.system-section {
+    margin: 1;
+    padding: 1;
+    background: $surface;
+    border: solid $secondary;
+    border-title-color: $primary;
+}
+
+.system-row {
+    height: 1;
+    margin-bottom: 1;
+}
+
+.system-label {
+    width: 16;
+    color: $text-muted;
+}
+
+.system-value {
+    color: $text;
+}
+
+/* === GPU Detail Screen === */
+.detail-section {
+    margin: 1;
+    padding: 1;
+    background: $surface;
+    border: solid $secondary;
+    border-title-color: $primary;
+}
+
+.detail-chart {
+    height: 10;
+    margin: 1;
+}
+
+.detail-stats {
+    height: 3;
+}
+
+.stat-box {
+    padding: 1;
+    margin: 0 1;
+    background: $surface-light;
+    border: solid $secondary;
+}
+
+.stat-label {
+    color: $text-muted;
+    text-align: center;
+}
+
+.stat-value {
+    color: $text;
+    text-style: bold;
+    text-align: center;
+}
+
+/* === Rig Card Screen === */
+#rig-card-preview {
+    margin: 2;
+    padding: 1;
+    background: $surface;
+    border: double $primary;
+}
+
+.rig-card-ascii {
+    color: $primary;
+    text-align: center;
+}
+
+.rig-card-section {
+    margin-top: 1;
+    padding-top: 1;
+    border-top: solid $secondary;
+}
+
+.rig-card-row {
+    height: 1;
+}
+
+.rig-card-label {
+    width: 14;
+    color: $text-muted;
+}
+
+.rig-card-value {
+    color: $text;
+}
+
+/* === Help Modal === */
+#help-modal {
+    align: center middle;
+    width: 70;
+    height: 30;
+    padding: 1 2;
+    background: $surface;
+    border: double $primary;
+}
+
+#help-modal .help-title {
+    text-align: center;
+    color: $primary;
+    text-style: bold;
+    padding-bottom: 1;
+    border-bottom: solid $secondary;
+}
+
+#help-modal .help-section {
+    margin-top: 1;
+    color: $text-muted;
+    text-style: bold;
+}
+
+#help-modal .help-key {
+    width: 14;
+    color: $accent;
+}
+
+#help-modal .help-desc {
+    color: $text;
+}
+
+/* === Dashboard Grid === */
+#dashboard-grid {
+    layout: grid;
+    grid-size: 2;
+    grid-gutter: 1;
+    padding: 1;
+}
+
+#dashboard-grid.-single-column {
+    grid-size: 1;
+}
+
+#dashboard-grid.-four-column {
+    grid-size: 4;
+}
+
+/* === Scrollable containers === */
+.scrollable {
+    overflow-y: auto;
+}
+
+/* === Utility classes === */
+.hidden {
+    display: none;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.text-muted {
+    color: $text-muted;
+}
+
+.text-primary {
+    color: $primary;
+}
+
+.text-accent {
+    color: $accent;
+}
+
+.text-warning {
+    color: $warning;
+}
+
+.text-danger {
+    color: $danger;
+}
+
+.mt-1 {
+    margin-top: 1;
+}
+
+.mb-1 {
+    margin-bottom: 1;
+}
+
+.p-1 {
+    padding: 1;
+}

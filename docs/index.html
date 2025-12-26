@@ -2,255 +2,730 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>picomon</title>
+    <title>picomon - GPU Monitoring TUI</title>
+    <meta name="description" content="Beautiful terminal dashboard for monitoring GPUs. Supports AMD, NVIDIA, and Apple Silicon.">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0a0a12">
+    <!-- Use CDNFonts for JetBrains Mono - includes box-drawing characters (U+2500-257F) -->
+    <!-- Google Fonts subsets exclude these characters causing alignment issues -->
+    <link href="https://fonts.cdnfonts.com/css/jetbrains-mono" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
       :root {
         color-scheme: dark;
-        --bg: #050506;
-        --card: #0b0d13;
-        --card-border: #1c2233;
-        --text: #f1f6ff;
-        --muted: #a0a6b8;
-        --accent: #59d3ff;
-        --accent-soft: rgba(89, 211, 255, 0.08);
-        --surface: #121520;
+        --bg: #0a0a12;
+        --bg-gradient: linear-gradient(180deg, #0a0a12 0%, #12121f 100%);
+        --card: #13131f;
+        --card-hover: #1a1a2a;
+        --card-border: #252538;
+        --text: #f4f4f8;
+        --text-secondary: #9898a8;
+        --muted: #68687a;
+        --accent: #e94560;
+        --accent-glow: rgba(233, 69, 96, 0.3);
+        --cyan: #16c79a;
+        --cyan-glow: rgba(22, 199, 154, 0.25);
+        --blue: #3b82f6;
+        --orange: #f39c12;
+        --surface: #0f0f1a;
+        --border-color: #0f3460;
       }
-      * { box-sizing: border-box; }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html { scroll-behavior: smooth; }
       body {
-        margin: 0;
-        min-height: 100vh;
-        font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        background: radial-gradient(circle at top right, rgba(89,211,255,0.25), rgba(5,5,6,0)) var(--bg);
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        background: var(--bg-gradient);
         color: var(--text);
+        line-height: 1.6;
+        min-height: 100vh;
+      }
+
+      /* Hero Section */
+      .hero {
+        min-height: 100vh;
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding: 3rem 1.5rem;
+        text-align: center;
+        padding: 2rem;
+        position: relative;
+        overflow: hidden;
       }
-      main {
-        width: min(960px, 100%);
-        background: linear-gradient(145deg, rgba(25,28,45,0.85), rgba(10,12,20,0.85));
-        border: 1px solid rgba(255,255,255,0.05);
-        border-radius: 28px;
-        box-shadow: 0 20px 60px rgba(2,4,15,0.65), inset 0 0 0 1px rgba(255,255,255,0.02);
-        padding: 3rem;
-        backdrop-filter: blur(16px);
+      .hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background:
+          radial-gradient(ellipse at 30% 20%, var(--accent-glow) 0%, transparent 50%),
+          radial-gradient(ellipse at 70% 80%, var(--cyan-glow) 0%, transparent 50%);
+        animation: pulse 8s ease-in-out infinite alternate;
+        pointer-events: none;
       }
-      header {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1rem;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 2.5rem;
+      @keyframes pulse {
+        0% { opacity: 0.4; transform: scale(1); }
+        100% { opacity: 0.7; transform: scale(1.1); }
       }
-      h1 {
-        font-size: clamp(2.2rem, 3vw, 2.8rem);
-        margin: 0;
-        letter-spacing: -0.04em;
+      .hero-content {
+        position: relative;
+        z-index: 1;
+        max-width: 1000px;
+        width: 100%;
       }
-      header p {
-        color: var(--muted);
-        margin: 0;
-        max-width: 440px;
-      }
-      .button-row {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.75rem;
-      }
-      a.button {
-        text-decoration: none;
-        padding: 0.85rem 1.6rem;
-        border-radius: 999px;
+      .logo {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: clamp(2.5rem, 6vw, 4rem);
         font-weight: 600;
-        color: var(--bg);
-        background: var(--accent);
-        box-shadow: 0 12px 25px rgba(89,211,255,0.25);
+        letter-spacing: 0.15em;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(135deg, var(--accent) 0%, #ff6b8a 50%, var(--cyan) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
       }
-      a.button.secondary {
-        background: rgba(255,255,255,0.05);
-        color: var(--text);
+      .tagline {
+        font-size: clamp(1rem, 2vw, 1.2rem);
+        color: var(--text-secondary);
+        margin-bottom: 1.5rem;
+      }
+      .providers {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-bottom: 2rem;
+      }
+      .provider-badge {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        background: rgba(255,255,255,0.03);
         border: 1px solid rgba(255,255,255,0.08);
-        box-shadow: none;
+        border-radius: 100px;
+        font-size: 0.9rem;
+        color: var(--text-secondary);
       }
-      .terminal {
-        margin: 2.5rem 0;
-        border-radius: 20px;
+
+      /* Terminal in Hero */
+      .hero-terminal {
+        width: 100%;
+        max-width: 720px;
+        margin: 0 auto 2rem;
+        border-radius: 12px;
         background: var(--surface);
         border: 1px solid var(--card-border);
-        box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+        box-shadow: 0 30px 60px rgba(0,0,0,0.5);
         overflow: hidden;
-        font-family: 'JetBrains Mono', 'SFMono-Regular', Menlo, Consolas, monospace;
+        text-align: left;
       }
       .terminal-header {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
-        padding: 0.75rem 1rem;
-        background: radial-gradient(circle at top left, rgba(89,211,255,0.18), transparent) rgba(5,6,12,0.9);
-        border-bottom: 1px solid rgba(255,255,255,0.04);
+        gap: 8px;
+        padding: 12px 16px;
+        background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, transparent 100%);
+        border-bottom: 1px solid rgba(255,255,255,0.05);
       }
-      .dot {
-        width: 11px;
-        height: 11px;
+      .terminal-dot {
+        width: 12px;
+        height: 12px;
         border-radius: 50%;
       }
-      .dot.red { background: #ff5f56; }
-      .dot.yellow { background: #ffbd2e; }
-      .dot.green { background: #27c93f; }
+      .terminal-dot.red { background: #ff5f56; }
+      .terminal-dot.yellow { background: #ffbd2e; }
+      .terminal-dot.green { background: #27c93f; }
       .terminal-title {
-        margin-left: auto;
-        font-size: 0.85rem;
+        flex: 1;
+        text-align: center;
         color: var(--muted);
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.8rem;
       }
       .terminal-body {
-        padding: 1.75rem;
-        background: repeating-linear-gradient(
-          transparent,
-          transparent 48px,
-          rgba(255,255,255,0.01) 48px,
-          rgba(255,255,255,0.01) 96px
-        );
+        padding: 1rem;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.75rem;
+        line-height: 1.2;
+        overflow-x: auto;
       }
-      .grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap: 1.5rem;
+      .terminal-body pre {
+        margin: 0;
+        font-family: inherit;
+        line-height: 1.2;
       }
-      .panel {
-        border: 1px solid rgba(255,255,255,0.06);
-        border-radius: 16px;
-        padding: 1.25rem;
-        background: radial-gradient(circle at top, rgba(89,211,255,0.08), rgba(12,14,20,0.65));
-        min-height: 220px;
+      .t-accent { color: var(--accent); }
+      .t-cyan { color: var(--cyan); }
+      .t-muted { color: var(--muted); }
+      .t-text { color: var(--text); }
+      .t-orange { color: var(--orange); }
+      .t-blue { color: var(--blue); }
+      .t-border { color: var(--border-color); }
+
+      .cta-group {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-bottom: 1.5rem;
       }
-      .panel h3 {
-        font-size: 1rem;
-        margin: 0 0 1rem 0;
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
-        color: var(--muted);
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.9rem 1.8rem;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        text-decoration: none;
+        transition: all 0.2s ease;
       }
-      .spark {
-        font-size: 1.5rem;
-        letter-spacing: 0.05em;
+      .btn-primary {
+        background: var(--accent);
+        color: white;
+        box-shadow: 0 4px 20px var(--accent-glow);
       }
-      .spark-label {
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px var(--accent-glow);
+      }
+      .btn-secondary {
+        background: rgba(255,255,255,0.05);
+        color: var(--text);
+        border: 1px solid rgba(255,255,255,0.1);
+      }
+      .btn-secondary:hover {
+        background: rgba(255,255,255,0.1);
+      }
+      .install-cmd {
+        font-family: 'JetBrains Mono', monospace;
+        background: var(--surface);
+        border: 1px solid var(--card-border);
+        border-radius: 10px;
+        padding: 0.8rem 1.2rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.8rem;
         font-size: 0.9rem;
-        color: var(--muted);
-        display: block;
-        margin-bottom: 0.35rem;
+        color: var(--cyan);
       }
-      .meta {
+      .install-cmd .prompt {
+        color: var(--muted);
+      }
+
+      /* Features Section */
+      .features {
+        padding: 5rem 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      .section-title {
+        text-align: center;
+        font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+        margin-bottom: 1rem;
+      }
+      .section-subtitle {
+        text-align: center;
+        color: var(--text-secondary);
+        max-width: 550px;
+        margin: 0 auto 3rem;
+        font-size: 1rem;
+      }
+      .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.25rem;
+      }
+      .feature-card {
+        background: var(--card);
+        border: 1px solid var(--card-border);
+        border-radius: 14px;
+        padding: 1.75rem;
+        transition: all 0.3s ease;
+      }
+      .feature-card:hover {
+        background: var(--card-hover);
+        border-color: rgba(255,255,255,0.1);
+        transform: translateY(-3px);
+      }
+      .feature-icon {
+        font-size: 2rem;
+        margin-bottom: 0.75rem;
+      }
+      .feature-card h3 {
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+      }
+      .feature-card p {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+      }
+
+      /* Screens Section */
+      .screens {
+        padding: 5rem 2rem;
+        background: linear-gradient(180deg, transparent 0%, rgba(22, 199, 154, 0.02) 50%, transparent 100%);
+      }
+      .screens-inner {
+        max-width: 950px;
+        margin: 0 auto;
+      }
+      .screen-item {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2.5rem;
+        align-items: center;
+        margin-bottom: 4rem;
+      }
+      .screen-item:nth-child(even) {
+        direction: rtl;
+      }
+      .screen-item:nth-child(even) > * {
+        direction: ltr;
+      }
+      .screen-info h3 {
+        font-size: 1.3rem;
+        margin-bottom: 0.6rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .screen-info h3 .key {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.85rem;
+        background: var(--accent);
+        color: white;
+        padding: 0.15rem 0.5rem;
+        border-radius: 5px;
+      }
+      .screen-info p {
+        color: var(--text-secondary);
+        margin-bottom: 0.75rem;
+        font-size: 0.95rem;
+      }
+      .screen-info ul {
+        list-style: none;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+      }
+      .screen-info ul li {
+        padding: 0.25rem 0;
+        padding-left: 1.25rem;
+        position: relative;
+      }
+      .screen-info ul li::before {
+        content: '→';
+        position: absolute;
+        left: 0;
+        color: var(--cyan);
+      }
+      .screen-preview {
+        background: var(--surface);
+        border: 1px solid var(--card-border);
+        border-radius: 10px;
+        padding: 1rem;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.7rem;
+        line-height: 1.2;
+        overflow-x: auto;
+      }
+      .screen-preview pre {
+        margin: 0;
+        font-family: inherit;
+        line-height: 1.2;
+      }
+      @media (max-width: 768px) {
+        .screen-item {
+          grid-template-columns: 1fr;
+        }
+        .screen-item:nth-child(even) {
+          direction: ltr;
+        }
+      }
+
+      /* Keyboard Shortcuts */
+      .shortcuts {
+        padding: 5rem 2rem;
+        max-width: 750px;
+        margin: 0 auto;
+      }
+      .shortcut-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 1rem;
-        margin-top: 3rem;
+        gap: 0.75rem;
       }
-      .meta-card {
-        border: 1px solid rgba(255,255,255,0.05);
-        border-radius: 14px;
-        padding: 1.25rem;
-        background: rgba(255,255,255,0.015);
+      .shortcut {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        background: var(--card);
+        border: 1px solid var(--card-border);
+        border-radius: 8px;
       }
-      .meta-card small {
-        font-size: 0.8rem;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        color: var(--muted);
-      }
-      .meta-card strong {
-        display: block;
-        margin-top: 0.45rem;
-        font-size: 1.1rem;
-      }
-      footer {
-        margin-top: 2.5rem;
-        font-size: 0.9rem;
-        color: var(--muted);
+      .shortcut kbd {
+        font-family: 'JetBrains Mono', monospace;
+        background: var(--surface);
+        border: 1px solid var(--card-border);
+        padding: 0.3rem 0.6rem;
+        border-radius: 5px;
+        font-size: 0.85rem;
+        min-width: 2.2rem;
         text-align: center;
       }
-      footer a {
-        color: var(--accent);
-        text-decoration: none;
+      .shortcut span {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
       }
-      @media (max-width: 720px) {
-        main { padding: 2rem; }
-        .terminal-body { padding: 1.25rem; }
+
+      /* Rig Card Section */
+      .rigcard {
+        padding: 5rem 2rem;
+        text-align: center;
+      }
+      .rigcard-inner {
+        max-width: 650px;
+        margin: 0 auto;
+      }
+      .rigcard-preview {
+        background: var(--surface);
+        border: 1px solid var(--card-border);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.72rem;
+        line-height: 1.2;
+        text-align: left;
+        overflow-x: auto;
+      }
+      .rigcard-preview pre {
+        margin: 0;
+        font-family: inherit;
+        line-height: 1.2;
+      }
+      .rigcard-actions {
+        display: flex;
+        gap: 0.75rem;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .rigcard-action {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.6rem 1rem;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid var(--card-border);
+        border-radius: 6px;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+      }
+      .rigcard-action kbd {
+        font-family: 'JetBrains Mono', monospace;
+        background: var(--cyan);
+        color: var(--bg);
+        padding: 0.15rem 0.4rem;
+        border-radius: 3px;
+        font-size: 0.75rem;
+        font-weight: 600;
+      }
+
+      /* Footer */
+      footer {
+        padding: 3rem 2rem;
+        text-align: center;
+        border-top: 1px solid var(--card-border);
+      }
+      .footer-links {
+        display: flex;
+        gap: 1.5rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-bottom: 1.5rem;
+      }
+      .footer-links a {
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: color 0.2s;
+      }
+      .footer-links a:hover {
+        color: var(--accent);
+      }
+      .footer-meta {
+        color: var(--muted);
+        font-size: 0.85rem;
+      }
+      .footer-meta a {
+        color: var(--cyan);
+        text-decoration: none;
       }
     </style>
   </head>
   <body>
-    <main>
-      <header>
-        <div>
-          <h1>picomon</h1>
-          <p>AMD GPU telemetry without the noise. picomon talks to <code>amd-smi</code>, tracks power, VRAM, and engine activity, and renders it in a focused two-column TUI.</p>
-        </div>
-        <div class="button-row">
-          <a class="button" href="https://github.com/omarkamali/picomon">GitHub</a>
-          <a class="button secondary" href="https://pypi.org/project/picomon/">PyPI</a>
-        </div>
-      </header>
+    <!-- Hero Section with Terminal -->
+    <section class="hero">
+      <div class="hero-content">
+        <h1 class="logo">PICOMON</h1>
+        <p class="tagline">Beautiful terminal dashboard for monitoring GPUs. One tool for all your graphics cards.</p>
 
-      <section class="terminal">
-        <div class="terminal-header">
-          <span class="dot red"></span>
-          <span class="dot yellow"></span>
-          <span class="dot green"></span>
-          <span class="terminal-title">picomon (last 30 min)</span>
+        <div class="providers">
+          <div class="provider-badge"><span>🔴</span> AMD</div>
+          <div class="provider-badge"><span>🟢</span> NVIDIA</div>
+          <div class="provider-badge"><span>🍎</span> Apple Silicon</div>
         </div>
-        <div class="terminal-body">
-          <div class="grid">
-            <article class="panel">
-              <h3>GPU 0 / Navi 21</h3>
-              <div class="spark-label">GFX 42% · UMC 21%</div>
-              <div class="spark">▁▂▂▃▄▄▅▆▆▇█▇▆▅▄▃▂▁</div>
-              <div class="spark-label">Power 135 / 250 W</div>
-              <div class="spark">▁▁▂▂▃▄▄▅▆▇█▇▆▅▄▂</div>
-              <div class="spark-label">VRAM 10.2 / 16 GB</div>
-              <div class="spark">▁▁▂▂▃▄▅▆▇██▇▆▅▄▂</div>
-            </article>
-            <article class="panel">
-              <h3>GPU 1 / Navi 31</h3>
-              <div class="spark-label">GFX 78% · UMC 66%</div>
-              <div class="spark">▂▃▄▅▆▇██▇▆▅▄▂▂▃▅</div>
-              <div class="spark-label">Power 210 / 250 W</div>
-              <div class="spark">▂▂▃▄▅▆▇██▇▆▅▄▃▂▂</div>
-              <div class="spark-label">VRAM 14.5 / 16 GB</div>
-              <div class="spark">▂▃▄▅▆▆▇███▇▆▅▄▃▂</div>
-            </article>
+
+        <!-- Terminal Preview - The Money Shot -->
+        <div class="hero-terminal">
+          <div class="terminal-header">
+            <div class="terminal-dot red"></div>
+            <div class="terminal-dot yellow"></div>
+            <div class="terminal-dot green"></div>
+            <span class="terminal-title">picomon</span>
           </div>
-        </div>
-      </section>
+          <div class="terminal-body"><pre><span class="t-accent">PICOMON</span>  <span class="t-muted">GPU Monitor</span>
+<span class="t-muted">▲ 30min history │ 3.0s refresh</span>
 
-      <section class="meta">
-        <div class="meta-card">
-          <small>requirements</small>
-          <strong>Python 3.9+, amd-smi on PATH, ANSI terminal.</strong>
-        </div>
-        <div class="meta-card">
-          <small>install</small>
-          <strong><code>pip install picomon==0.1.2</code></strong>
-        </div>
-        <div class="meta-card">
-          <small>usage</small>
-          <strong><code>picomon --update-interval 2 --history-minutes 30</code></strong>
-        </div>
-        <div class="meta-card">
-          <small>author</small>
-          <strong><a href="https://omarkamali.com" target="_blank">Omar Kamali</a> · MIT License</strong>
-        </div>
-      </section>
+<span class="t-border">┌────────────────────────────────┐ ┌────────────────────────────────┐</span>
+<span class="t-border">│</span> <span class="t-accent">GPU 0</span>  <span class="t-muted">Apple M3 Max GPU</span>        <span class="t-border">│ │</span> <span class="t-accent">GPU 1</span>  <span class="t-muted">RTX 4090</span>                <span class="t-border">│</span>
+<span class="t-border">│</span>                                <span class="t-border">│ │</span>                                <span class="t-border">│</span>
+<span class="t-border">│</span> <span class="t-muted">GFX</span>  <span class="t-cyan">██████████</span><span class="t-border">░░░░░░░░</span> <span class="t-text">52%</span>    <span class="t-border">│ │</span> <span class="t-muted">GFX</span>  <span class="t-cyan">██████████████</span><span class="t-border">░░░░</span> <span class="t-text">78%</span>    <span class="t-border">│</span>
+<span class="t-border">│</span> <span class="t-muted">UMC</span>  <span class="t-cyan">████</span><span class="t-border">░░░░░░░░░░░░░░</span> <span class="t-text">18%</span>    <span class="t-border">│ │</span> <span class="t-muted">UMC</span>  <span class="t-cyan">██████████</span><span class="t-border">░░░░░░░░</span> <span class="t-text">56%</span>    <span class="t-border">│</span>
+<span class="t-border">│</span> <span class="t-muted">PWR</span>  <span class="t-orange">██</span><span class="t-border">░░░░░░░░░░░░░░░░</span>  <span class="t-text">6W</span>    <span class="t-border">│ │</span> <span class="t-muted">PWR</span>  <span class="t-orange">████████████</span><span class="t-border">░░░░░░</span> <span class="t-text">320W</span>   <span class="t-border">│</span>
+<span class="t-border">│</span> <span class="t-muted">VRAM</span> <span class="t-blue">██████████████</span><span class="t-border">░░░░</span> <span class="t-text">80%</span>    <span class="t-border">│ │</span> <span class="t-muted">VRAM</span> <span class="t-blue">██████████</span><span class="t-border">░░░░░░░░</span> <span class="t-text">52%</span>    <span class="t-border">│</span>
+<span class="t-border">│</span>                                <span class="t-border">│ │</span>                                <span class="t-border">│</span>
+<span class="t-border">│</span> <span class="t-cyan">▁▂▃▄▅▆▇█▇▆▅▄▃▂▁▂▃▄</span> <span class="t-muted">GFX</span>         <span class="t-border">│ │</span> <span class="t-cyan">▂▃▅▆▇█████▇▆▅▄▃▂▁▂</span> <span class="t-muted">GFX</span>         <span class="t-border">│</span>
+<span class="t-border">│</span> <span class="t-orange">▁▁▂▂▃▄▅▆▇█▇▆▅▄▃▂▁▁</span> <span class="t-muted">PWR</span>         <span class="t-border">│ │</span> <span class="t-orange">▂▃▄▅▆▇████▇▆▅▄▃▂▂▃</span> <span class="t-muted">PWR</span>         <span class="t-border">│</span>
+<span class="t-border">└────────────────────────────────┘ └────────────────────────────────┘</span>
 
-      <footer>
-        Designed for minimal fuss. Bugs? <a href="https://github.com/omarkamali/picomon/issues/new?assignees=&labels=bug&template=bug_report.md&title=%5BBug%5D">Open an issue.</a>
-      </footer>
-    </main>
+<span class="t-muted">TOTAL: 2 GPUs │</span> <span class="t-orange">326/450W</span> <span class="t-muted">│</span> <span class="t-blue">20.5/40.0 GB</span> <span class="t-muted">│ Avg GFX:</span> <span class="t-cyan">65%</span></pre></div>
+        </div>
+
+        <div class="cta-group">
+          <a href="https://github.com/omarkamali/picomon" class="btn btn-primary">View on GitHub</a>
+          <a href="https://pypi.org/project/picomon/" class="btn btn-secondary">PyPI Package</a>
+        </div>
+
+        <div class="install-cmd">
+          <span class="prompt">$</span>
+          <span>pip install picomon</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section class="features">
+      <h2 class="section-title">Built for GPU Enthusiasts</h2>
+      <p class="section-subtitle">Whether you're running ML workloads, gaming, or managing a GPU cluster, picomon gives you the visibility you need.</p>
+
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🎯</div>
+          <h3>Multi-Vendor Support</h3>
+          <p>Works with AMD (amd-smi), NVIDIA (nvidia-smi), and Apple Silicon. Auto-detects your hardware.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📊</div>
+          <h3>Live Sparklines</h3>
+          <p>Visual history of GPU utilization, power draw, and memory usage over time.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🖥️</div>
+          <h3>Multiple Screens</h3>
+          <p>Dashboard for overview, System for CPU/RAM, GPU Detail for deep dives, Rig Card for sharing.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">⌨️</div>
+          <h3>Keyboard-First</h3>
+          <p>Full keyboard navigation. Press 1-9 for quick screen switching. No mouse required.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🎨</div>
+          <h3>Beautiful TUI</h3>
+          <p>Built with Textual for a modern, responsive terminal interface that looks great.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📤</div>
+          <h3>Shareable Rig Cards</h3>
+          <p>Generate ASCII art summaries. Copy to clipboard or save to file with one key.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Screens -->
+    <section class="screens">
+      <div class="screens-inner">
+        <h2 class="section-title">Four Powerful Screens</h2>
+        <p class="section-subtitle">Navigate seamlessly between views with number keys.</p>
+
+        <div class="screen-item">
+          <div class="screen-info">
+            <h3><span class="key">1</span> Dashboard</h3>
+            <p>Your GPU command center. See all GPUs at once with live metrics and sparkline history.</p>
+            <ul>
+              <li>Grid layout adapts to GPU count</li>
+              <li>Click cards to drill down</li>
+              <li>Aggregate stats in footer</li>
+            </ul>
+          </div>
+          <div class="screen-preview"><pre><span class="t-border">┌───────────────────────────┐</span>
+<span class="t-border">│</span> <span class="t-accent">GPU 0</span>  <span class="t-muted">Apple M3 Max</span>       <span class="t-border">│</span>
+<span class="t-border">│</span>                           <span class="t-border">│</span>
+<span class="t-border">│</span> <span class="t-muted">GFX</span>  <span class="t-cyan">████████</span><span class="t-border">░░░░</span>  <span class="t-text">52%</span>    <span class="t-border">│</span>
+<span class="t-border">│</span> <span class="t-muted">UMC</span>  <span class="t-cyan">███</span><span class="t-border">░░░░░░░░░</span>  <span class="t-text">18%</span>    <span class="t-border">│</span>
+<span class="t-border">│</span> <span class="t-muted">PWR</span>  <span class="t-orange">██</span><span class="t-border">░░░░░░░░░░</span>   <span class="t-text">6W</span>    <span class="t-border">│</span>
+<span class="t-border">│</span> <span class="t-muted">VRAM</span> <span class="t-blue">██████████</span><span class="t-border">░░</span>  <span class="t-text">80%</span>    <span class="t-border">│</span>
+<span class="t-border">│</span>                           <span class="t-border">│</span>
+<span class="t-border">│</span> <span class="t-cyan">▁▂▃▄▅▆▇█▇▆▅▄▃▂▁</span> <span class="t-muted">GFX</span>       <span class="t-border">│</span>
+<span class="t-border">│</span> <span class="t-orange">▁▁▂▂▃▄▅▆▇█▇▆▅▄</span> <span class="t-muted">PWR</span>        <span class="t-border">│</span>
+<span class="t-border">└───────────────────────────┘</span></pre></div>
+        </div>
+
+        <div class="screen-item">
+          <div class="screen-info">
+            <h3><span class="key">2</span> System Overview</h3>
+            <p>Full system health at a glance. CPU, RAM, and aggregate GPU cluster statistics.</p>
+            <ul>
+              <li>Hostname, OS, kernel, uptime</li>
+              <li>CPU usage with sparkline</li>
+              <li>RAM and swap utilization</li>
+              <li>Total GPU cluster stats</li>
+            </ul>
+          </div>
+          <div class="screen-preview"><pre><span class="t-border">┌─ SYSTEM ──────────────────┐</span>
+<span class="t-border">│</span> <span class="t-muted">Hostname</span>   <span class="t-text">my-workstation</span> <span class="t-border">│</span>
+<span class="t-border">│</span> <span class="t-muted">OS</span>         <span class="t-text">Ubuntu 24.04</span>   <span class="t-border">│</span>
+<span class="t-border">│</span> <span class="t-muted">Kernel</span>     <span class="t-text">6.8.0-generic</span>  <span class="t-border">│</span>
+<span class="t-border">│</span> <span class="t-muted">Uptime</span>     <span class="t-text">4d 12h 33m</span>     <span class="t-border">│</span>
+<span class="t-border">└───────────────────────────┘</span>
+<span class="t-border">┌─ CPU ─────────────────────┐</span>
+<span class="t-border">│</span> <span class="t-text">AMD Ryzen 9 7950X</span>         <span class="t-border">│</span>
+<span class="t-border">│</span> <span class="t-muted">16 cores / 32 threads</span>     <span class="t-border">│</span>
+<span class="t-border">│</span> <span class="t-muted">Usage</span> <span class="t-cyan">████████</span><span class="t-border">░░░░</span> <span class="t-text">42%</span>    <span class="t-border">│</span>
+<span class="t-border">│</span> <span class="t-cyan">▁▂▃▄▅▆▇█▇▆▅▄▃▂▁▂▃▄</span>        <span class="t-border">│</span>
+<span class="t-border">└───────────────────────────┘</span></pre></div>
+        </div>
+
+        <div class="screen-item">
+          <div class="screen-info">
+            <h3><span class="key">3-9</span> GPU Detail</h3>
+            <p>Deep dive into individual GPU metrics. Temperature, clocks, and full history charts.</p>
+            <ul>
+              <li>Full metric history</li>
+              <li>Temperature monitoring</li>
+              <li>Clock speeds and fan</li>
+              <li>PCI bus and architecture</li>
+            </ul>
+          </div>
+          <div class="screen-preview"><pre><span class="t-border">┌─ GPU 0: RTX 4090 ─────────┐</span>
+<span class="t-border">│</span>                           <span class="t-border">│</span>
+<span class="t-border">│</span> <span class="t-text">Utilization</span>               <span class="t-border">│</span>
+<span class="t-border">│</span> <span class="t-cyan">▁▂▃▄▅▆▇█▇▆▅▄▃▂▁▂▃▄▅▆▇█</span>    <span class="t-border">│</span>
+<span class="t-border">│</span>                           <span class="t-border">│</span>
+<span class="t-border">│</span> <span class="t-text">Power Draw</span>                <span class="t-border">│</span>
+<span class="t-border">│</span> <span class="t-orange">▂▃▄▅▆▇████▇▆▅▄▃▂▂▃▄▅▆▇</span>    <span class="t-border">│</span>
+<span class="t-border">│</span>                           <span class="t-border">│</span>
+<span class="t-border">│</span> <span class="t-muted">Temp:</span> <span class="t-text">72°C</span>  <span class="t-muted">Fan:</span> <span class="t-text">65%</span>      <span class="t-border">│</span>
+<span class="t-border">│</span> <span class="t-muted">Clock:</span> <span class="t-text">2520 MHz</span>           <span class="t-border">│</span>
+<span class="t-border">└───────────────────────────┘</span></pre></div>
+        </div>
+
+        <div class="screen-item">
+          <div class="screen-info">
+            <h3><span class="key">r</span> Rig Card</h3>
+            <p>Generate a shareable ASCII art summary of your entire setup. Perfect for social media.</p>
+            <ul>
+              <li>System specs at a glance</li>
+              <li>GPU cluster summary</li>
+              <li>Live stats with bars</li>
+              <li>Copy or save with one key</li>
+            </ul>
+          </div>
+          <div class="screen-preview"><pre><span class="t-border">╔═══════════════════════════╗</span>
+<span class="t-border">║</span>     <span class="t-accent">P I C O M O N</span>         <span class="t-border">║</span>
+<span class="t-border">║</span>    <span class="t-muted">GPU Monitoring TUI</span>     <span class="t-border">║</span>
+<span class="t-border">╠═══════════════════════════╣</span>
+<span class="t-border">║</span> <span class="t-muted">SYSTEM</span>  <span class="t-text">my-workstation</span>    <span class="t-border">║</span>
+<span class="t-border">║</span> <span class="t-muted">CPU</span>     <span class="t-text">Ryzen 9 7950X</span>     <span class="t-border">║</span>
+<span class="t-border">║</span> <span class="t-muted">RAM</span>     <span class="t-text">128 GB</span>            <span class="t-border">║</span>
+<span class="t-border">╠═══════════════════════════╣</span>
+<span class="t-border">║</span> <span class="t-text">2 × RTX 4090</span>              <span class="t-border">║</span>
+<span class="t-border">║</span> <span class="t-muted">48 GB VRAM │ 900W TDP</span>     <span class="t-border">║</span>
+<span class="t-border">╚═══════════════════════════╝</span></pre></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Keyboard Shortcuts -->
+    <section class="shortcuts">
+      <h2 class="section-title">Keyboard Shortcuts</h2>
+      <p class="section-subtitle">Navigate like a pro with full keyboard support.</p>
+
+      <div class="shortcut-grid">
+        <div class="shortcut"><kbd>1</kbd><span>Dashboard</span></div>
+        <div class="shortcut"><kbd>2</kbd><span>System</span></div>
+        <div class="shortcut"><kbd>3-9</kbd><span>GPU Details</span></div>
+        <div class="shortcut"><kbd>r</kbd><span>Rig Card</span></div>
+        <div class="shortcut"><kbd>?</kbd><span>Help</span></div>
+        <div class="shortcut"><kbd>Tab</kbd><span>Next Screen</span></div>
+        <div class="shortcut"><kbd>Esc</kbd><span>Go Back</span></div>
+        <div class="shortcut"><kbd>q</kbd><span>Quit</span></div>
+      </div>
+    </section>
+
+    <!-- Rig Card CTA -->
+    <section class="rigcard">
+      <div class="rigcard-inner">
+        <h2 class="section-title">Show Off Your Setup</h2>
+        <p class="section-subtitle">The Rig Card feature generates beautiful ASCII art summaries. Share your specs with the world.</p>
+
+        <div class="rigcard-preview"><pre>╔══════════════════════════════════════════════════════════╗
+║                  P  I  C  O  M  O  N                     ║
+║                   GPU Monitoring TUI                     ║
+╠══════════════════════════════════════════════════════════╣
+║  SYSTEM      my-workstation                              ║
+║  CPU         AMD Ryzen 9 7950X                           ║
+║  RAM         128 GB                                      ║
+╠══════════════════════════════════════════════════════════╣
+║  GPU CLUSTER                                             ║
+║  ────────────────────────────────────────                ║
+║  2 × NVIDIA RTX 4090                                     ║
+║  VRAM        48 GB (24 GB × 2)                           ║
+║  TDP         900 W (450 W × 2)                           ║
+╠══════════════════════════════════════════════════════════╣
+║  LIVE STATS                                              ║
+║  GPU Load    ████████████████░░░░░░░░░░░░░░  52.3%       ║
+║  Power Draw  ██████████░░░░░░░░░░░░░░░░░░░░   380W       ║
+║  VRAM Used   ████████████░░░░░░░░░░░░░░░░░░    20GB      ║
+╠══════════════════════════════════════════════════════════╣
+║  Generated by picomon │ 2025-12-26 12:00                 ║
+╚══════════════════════════════════════════════════════════╝</pre></div>
+
+        <div class="rigcard-actions">
+          <div class="rigcard-action"><kbd>c</kbd> Copy to clipboard</div>
+          <div class="rigcard-action"><kbd>s</kbd> Save to file</div>
+          <div class="rigcard-action"><kbd>m</kbd> Toggle compact mode</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      <div class="footer-links">
+        <a href="https://github.com/omarkamali/picomon">GitHub</a>
+        <a href="https://pypi.org/project/picomon/">PyPI</a>
+        <a href="https://github.com/omarkamali/picomon/issues">Issues</a>
+        <a href="https://github.com/omarkamali/picomon/blob/master/CHANGELOG.md">Changelog</a>
+      </div>
+      <p class="footer-meta">
+        MIT License · Made by <a href="https://omarkamali.com">Omar Kamali</a> · v0.2.0
+      </p>
+    </footer>
   </body>
 </html>

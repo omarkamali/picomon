@@ -8,7 +8,7 @@ assignees: []
 
 ## Summary
 
-_One‑liner describing the observed problem._
+_One-liner describing the observed problem._
 
 ## Expected vs actual
 
@@ -19,37 +19,86 @@ _One‑liner describing the observed problem._
 
 | Item | Version / value |
 | --- | --- |
-| picomon version (`picomon --version`) | <your version> |
-| Python version (`python --version`) | <your version> |
-| OS / Distro | <your os and version> |
-| `amd-smi` version (`amd-smi --version`) | <your version> |
-| Terminal emulator | <your terminal emulator and version> |
+| picomon version (`picomon --version`) | |
+| Python version (`python --version`) | |
+| OS / Distro | |
+| Terminal emulator | |
 
-## Metrics command output
+### GPU Provider (check one)
 
-Please paste the raw JSON output of the commands picomon uses for metrics collection. Remove any sensitive info before posting.
+- [ ] AMD (via `amd-smi`)
+- [ ] NVIDIA (via `nvidia-smi`)
+- [ ] Apple Silicon
 
-```shell
-amd-smi static --vram --limit --json
-```
+## Provider diagnostics
 
-```
-<paste static output here>
-```
-
-```shell
-amd-smi metric --usage --power --mem-usage --json
-```
+Please paste the output of `picomon --list-providers`:
 
 ```
-<paste metric output here>
+<paste output here>
 ```
+
+### For AMD GPUs
+
+<details>
+<summary>Click to expand AMD diagnostics</summary>
+
+`amd-smi` version (`amd-smi --version`):
+```
+<paste version here>
+```
+
+Static info (`amd-smi static --vram --limit --json`):
+```json
+<paste output here>
+```
+
+Metrics (`amd-smi metric --usage --power --mem-usage --json`):
+```json
+<paste output here>
+```
+
+</details>
+
+### For NVIDIA GPUs
+
+<details>
+<summary>Click to expand NVIDIA diagnostics</summary>
+
+`nvidia-smi` version:
+```
+<paste nvidia-smi output here>
+```
+
+GPU info (`nvidia-smi --query-gpu=name,memory.total,power.limit --format=csv`):
+```
+<paste output here>
+```
+
+</details>
+
+### For Apple Silicon
+
+<details>
+<summary>Click to expand Apple Silicon diagnostics</summary>
+
+macOS version (`sw_vers`):
+```
+<paste output here>
+```
+
+System info (`system_profiler SPDisplaysDataType`):
+```
+<paste output here>
+```
+
+</details>
 
 ## Steps to reproduce
 
-1. …
-2. …
-3. …
+1. ...
+2. ...
+3. ...
 
 ## Additional context / screenshots
 

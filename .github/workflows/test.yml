@@ -7,11 +7,12 @@ on:
     branches: [master]
 
 jobs:
-  tests:
+  # Run tests on Linux with multiple Python versions
+  test-linux:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -22,4 +23,113 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -e .[dev]
       - name: Run tests
-        run: pytest -q
+        run: pytest -v
+      - name: Test provider detection
+        run: |
+          python -c "from picomon.providers import detect_providers; print('Providers:', [p.name for p in detect_providers()])"
+
+  # Run tests on macOS Apple Silicon to test the Apple provider
+  test-macos-apple-silicon:
+    runs-on: macos-14  # Apple Silicon (M1)
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .[dev]
+      - name: Run tests
+        run: pytest -v
+      - name: Test Apple Silicon provider
+        run: |
+          python -c "
+          from picomon.providers import detect_providers, AppleSiliconProvider
+
+          # Check if Apple provider is available
+          providers = detect_providers()
+          print('Detected providers:', [p.name for p in providers])
+
+          # Test Apple provider specifically
+          if AppleSiliconProvider.is_available():
+              provider = AppleSiliconProvider()
+              print(f'Apple Silicon provider: {provider.name}')
+              print(f'GPU count: {provider.get_gpu_count()}')
+
+              static_info = provider.get_static_info()
+              for idx, info in static_info.items():
+                  print(f'  GPU {idx}: {info.name}')
+                  print(f'    VRAM: {info.vram_total_mb/1024:.0f} GB')
+
+              metrics = provider.get_metrics()
+              for m in metrics:
+                  print(f'  GPU {m.gpu_idx} metrics:')
+                  print(f'    Utilization: {m.gpu_utilization}%')
+                  print(f'    Power: {m.power_draw_w}W')
+          else:
+              print('Apple Silicon provider not available')
+          "
+
+  # Test import and basic functionality without GPU hardware
+  test-import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .[dev]
+      - name: Test imports
+        run: |
+          python -c "
+          # Test all major imports work
+          from picomon import PicomonConfig, run_monitor, __version__
+          from picomon.providers import (
+              GPUProvider, GPUStaticInfo, GPUMetrics, GPUHistory,
+              AMDProvider, NVIDIAProvider, AppleSiliconProvider,
+              detect_providers, get_provider, MultiProvider
+          )
+          from picomon.app import PicomonApp
+          from picomon.screens.dashboard import DashboardScreen
+          from picomon.screens.system import SystemScreen
+          from picomon.screens.gpu_detail import GPUDetailScreen
+          from picomon.screens.rig_card import RigCardScreen, generate_rig_card
+          from picomon.system_info import load_system_info, SystemMetrics
+
+          print(f'picomon version: {__version__}')
+          print('All imports successful!')
+          "
+      - name: Test rig card generation
+        run: |
+          python -c "
+          from picomon.screens.rig_card import generate_rig_card, generate_compact_card
+          from picomon.system_info import load_system_info, SystemMetrics, update_system_metrics
+
+          # Test with mock data (no GPU)
+          sys_info = load_system_info()
+          sys_metrics = SystemMetrics(max_points=100)
+          update_system_metrics(sys_metrics)
+
+          # Generate cards with empty GPU dict
+          full_card = generate_rig_card(sys_info, sys_metrics, {})
+          compact_card = generate_compact_card(sys_info, {})
+
+          print('Full rig card:')
+          print(full_card)
+          print()
+          print('Compact card:')
+          print(compact_card)
+
+          # Verify alignment - all lines should have same length
+          full_lines = full_card.split('\\n')
+          line_lengths = set(len(line) for line in full_lines)
+          assert len(line_lengths) == 1, f'Inconsistent line lengths: {line_lengths}'
+          print(f'\\nAll {len(full_lines)} lines have consistent width: {line_lengths.pop()} chars')
+          "
