@@ -43,6 +43,41 @@ def test_load_static_info_populates_static_fields():
     assert hist.hip_id == 42
 
 
+def test_load_static_info_reads_nested_ppt_power_limit():
+    config = PicomonConfig(update_interval=1.0, history_minutes=1)
+    runner = _runner_with_payloads(
+        {
+            "static": {
+                "gpu_data": [
+                    {
+                        "gpu": 0,
+                        "vram": {"size": {"value": 32624, "unit": "MB"}},
+                        "limit": {
+                            "ppt0": {
+                                "socket_power_limit": {"value": 300, "unit": "W"},
+                                "max_power_limit": {"value": 300, "unit": "W"},
+                            },
+                            "ppt1": {
+                                "socket_power_limit": "N/A",
+                                "max_power_limit": "N/A",
+                            },
+                        },
+                    }
+                ]
+            },
+            "list": [
+                {"gpu": 0, "node_id": 7},
+            ],
+        }
+    )
+
+    gpus = load_static_info(config, runner=runner)
+
+    assert gpus[0].vram_total_mb == 32624
+    assert gpus[0].power_limit_w == 300
+    assert gpus[0].hip_id == 7
+
+
 def test_update_dynamic_info_appends_samples():
     config = PicomonConfig(update_interval=1.0, history_minutes=1)
     static_runner = _runner_with_payloads(

@@ -54,6 +54,36 @@ def _as_dict(value) -> dict:
     return value if isinstance(value, dict) else {}
 
 
+def _parse_power_limit(limit_block: dict) -> float:
+    flat_power = (
+        limit_block.get("socket_power")
+        or limit_block.get("max_power")
+        or limit_block.get("socket_power_limit")
+        or limit_block.get("max_power_limit")
+    )
+    power_limit = parse_value_unit(flat_power)
+    if power_limit > 0:
+        return power_limit
+
+    ppt_blocks = []
+    ppt0 = _as_dict(limit_block.get("ppt0"))
+    if ppt0:
+        ppt_blocks.append(ppt0)
+    ppt_blocks.extend(
+        value
+        for key, value in limit_block.items()
+        if key != "ppt0" and key.startswith("ppt") and isinstance(value, dict)
+    )
+
+    for ppt_block in ppt_blocks:
+        for key in ("socket_power_limit", "max_power_limit"):
+            power_limit = parse_value_unit(ppt_block.get(key))
+            if power_limit > 0:
+                return power_limit
+
+    return 0.0
+
+
 def _load_gpu_identity_map(
     config: PicomonConfig, runner: CommandRunner
 ) -> Dict[int, int]:
@@ -125,9 +155,7 @@ def load_static_info(
             hist.vram_total_mb = parse_value_unit(size)
 
         limit_block = _as_dict(entry.get("limit"))
-        pwr = limit_block.get("socket_power") or limit_block.get("max_power")
-        if pwr is not None:
-            hist.power_limit_w = parse_value_unit(pwr)
+        hist.power_limit_w = _parse_power_limit(limit_block)
 
         gpus[gpu_idx] = hist
 

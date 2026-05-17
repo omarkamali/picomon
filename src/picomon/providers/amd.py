@@ -26,7 +26,10 @@ def _parse_value_unit(value) -> float:
         # Handle format: {"value": 123, "unit": "MB"}
         v = value.get("value")
         if v is not None:
-            return float(v)
+            try:
+                return float(v)
+            except (TypeError, ValueError):
+                return 0.0
         return 0.0
     if isinstance(value, str):
         # Strip units and parse
@@ -75,6 +78,37 @@ def _parse_int(value) -> int | None:
 def _as_dict(value) -> dict:
     """Return mapping-like amd-smi blocks, treating N/A strings as empty."""
     return value if isinstance(value, dict) else {}
+
+
+def _parse_power_limit(limit_block: dict) -> float:
+    """Parse power limit from older flat or newer PPT nested amd-smi output."""
+    flat_power = (
+        limit_block.get("socket_power")
+        or limit_block.get("max_power")
+        or limit_block.get("socket_power_limit")
+        or limit_block.get("max_power_limit")
+    )
+    power_limit = _parse_value_unit(flat_power)
+    if power_limit > 0:
+        return power_limit
+
+    ppt_blocks = []
+    ppt0 = _as_dict(limit_block.get("ppt0"))
+    if ppt0:
+        ppt_blocks.append(ppt0)
+    ppt_blocks.extend(
+        value
+        for key, value in limit_block.items()
+        if key != "ppt0" and key.startswith("ppt") and isinstance(value, dict)
+    )
+
+    for ppt_block in ppt_blocks:
+        for key in ("socket_power_limit", "max_power_limit"):
+            power_limit = _parse_value_unit(ppt_block.get(key))
+            if power_limit > 0:
+                return power_limit
+
+    return 0.0
 
 
 class AMDProvider(GPUProvider):
@@ -175,8 +209,7 @@ class AMDProvider(GPUProvider):
 
             # Parse power limit
             limit_block = _as_dict(entry.get("limit"))
-            pwr = limit_block.get("socket_power") or limit_block.get("max_power")
-            power_limit = _parse_value_unit(pwr) if pwr else 0.0
+            power_limit = _parse_power_limit(limit_block)
 
             # Get GPU name from asic block
             asic_block = _as_dict(entry.get("asic"))
