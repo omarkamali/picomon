@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "picomon"
-version = "0.2.1"
+version = "0.2.2"
 description = "Beautiful TUI dashboard for monitoring GPUs (AMD, NVIDIA, Apple Silicon)"
 readme = "README.md"
 license = { file = "LICENSE" }

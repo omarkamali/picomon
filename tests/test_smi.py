@@ -90,3 +90,36 @@ def test_update_dynamic_info_appends_samples():
     assert hist.power_w[-1] == 120
     assert hist.vram_used_mb[-1] == 8192
     assert hist.vram_total_mb == 16384
+
+
+def test_update_dynamic_info_handles_na_usage_blocks():
+    config = PicomonConfig(update_interval=1.0, history_minutes=1)
+    runner = _runner_with_payloads(
+        {
+            "metric": {
+                "gpu_data": [
+                    {
+                        "gpu": 2,
+                        "usage": "N/A",
+                        "power": {"socket_power": "N/A"},
+                        "mem_usage": {
+                            "used_visible_vram": {"value": 19, "unit": "MB"},
+                            "total_visible_vram": {"value": 512, "unit": "MB"},
+                        },
+                    }
+                ]
+            }
+        }
+    )
+
+    gpus = {}
+    now = datetime(2024, 1, 1, 12, 0, 0)
+    update_dynamic_info(config, gpus, runner=runner, timestamp_provider=lambda: now)
+
+    hist = gpus[2]
+    assert hist.timestamps[-1] == now
+    assert hist.gfx[-1] == 0.0
+    assert hist.umc[-1] == 0.0
+    assert hist.power_w[-1] == 0.0
+    assert hist.vram_used_mb[-1] == 19.0
+    assert hist.vram_total_mb == 512.0

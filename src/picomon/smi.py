@@ -50,6 +50,10 @@ def _parse_int(value) -> int | None:
         return None
 
 
+def _as_dict(value) -> dict:
+    return value if isinstance(value, dict) else {}
+
+
 def _load_gpu_identity_map(
     config: PicomonConfig, runner: CommandRunner
 ) -> Dict[int, int]:
@@ -102,6 +106,8 @@ def load_static_info(
     hip_ids = _load_gpu_identity_map(config, runner)
     gpus: Dict[int, GPUHistory] = {}
     for entry in data.get("gpu_data", []):
+        if not isinstance(entry, dict):
+            continue
         gpu_id = entry.get("gpu")
         if gpu_id is None:
             continue
@@ -113,12 +119,12 @@ def load_static_info(
         hist = GPUHistory(config.max_points)
         hist.hip_id = hip_ids.get(gpu_idx)
 
-        vram_block = entry.get("vram", {}) or {}
+        vram_block = _as_dict(entry.get("vram"))
         size = vram_block.get("size")
         if size is not None:
             hist.vram_total_mb = parse_value_unit(size)
 
-        limit_block = entry.get("limit", {}) or {}
+        limit_block = _as_dict(entry.get("limit"))
         pwr = limit_block.get("socket_power") or limit_block.get("max_power")
         if pwr is not None:
             hist.power_limit_w = parse_value_unit(pwr)
@@ -155,6 +161,8 @@ def update_dynamic_info(
 
     ts = timestamp_provider()
     for entry in data.get("gpu_data", []):
+        if not isinstance(entry, dict):
+            continue
         gpu_id = entry.get("gpu")
         if gpu_id is None:
             continue
@@ -167,15 +175,15 @@ def update_dynamic_info(
         if hist is None:
             hist = gpus[gpu_idx] = GPUHistory(config.max_points)
 
-        usage = entry.get("usage", {}) or {}
+        usage = _as_dict(entry.get("usage"))
         gfx = max(0.0, min(100.0, parse_value_unit(usage.get("gfx_activity", 0))))
         umc = max(0.0, min(100.0, parse_value_unit(usage.get("umc_activity", 0))))
 
-        power_block = entry.get("power", {}) or {}
+        power_block = _as_dict(entry.get("power"))
         socket_pwr = power_block.get("socket_power") or power_block.get("SOCKET_POWER")
         power_w = parse_value_unit(socket_pwr) if socket_pwr is not None else 0.0
 
-        mem_usage = entry.get("mem_usage", {}) or {}
+        mem_usage = _as_dict(entry.get("mem_usage"))
         used = mem_usage.get("used_visible_vram") or mem_usage.get("used_vram")
         total = mem_usage.get("total_visible_vram") or mem_usage.get("total_vram")
         vram_used_mb = parse_value_unit(used) if used is not None else 0.0

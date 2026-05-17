@@ -72,6 +72,11 @@ def _parse_int(value) -> int | None:
         return None
 
 
+def _as_dict(value) -> dict:
+    """Return mapping-like amd-smi blocks, treating N/A strings as empty."""
+    return value if isinstance(value, dict) else {}
+
+
 class AMDProvider(GPUProvider):
     """AMD GPU provider using amd-smi command-line tool."""
 
@@ -153,6 +158,8 @@ class AMDProvider(GPUProvider):
 
         gpu_data = data.get("gpu_data", []) if isinstance(data, dict) else data
         for entry in gpu_data:
+            if not isinstance(entry, dict):
+                continue
             gpu_id = entry.get("gpu")
             if gpu_id is None:
                 continue
@@ -162,17 +169,17 @@ class AMDProvider(GPUProvider):
                 continue
 
             # Parse VRAM
-            vram_block = entry.get("vram", {}) or {}
+            vram_block = _as_dict(entry.get("vram"))
             size = vram_block.get("size")
             vram_total = _parse_value_unit(size) if size else 0.0
 
             # Parse power limit
-            limit_block = entry.get("limit", {}) or {}
+            limit_block = _as_dict(entry.get("limit"))
             pwr = limit_block.get("socket_power") or limit_block.get("max_power")
             power_limit = _parse_value_unit(pwr) if pwr else 0.0
 
             # Get GPU name from asic block
-            asic_block = entry.get("asic", {}) or {}
+            asic_block = _as_dict(entry.get("asic"))
             gpu_name = asic_block.get("market_name") or asic_block.get("name") or "AMD GPU"
 
             info = GPUStaticInfo(
@@ -201,6 +208,8 @@ class AMDProvider(GPUProvider):
 
         gpu_data = data.get("gpu_data", []) if isinstance(data, dict) else data
         for entry in gpu_data:
+            if not isinstance(entry, dict):
+                continue
             gpu_id = entry.get("gpu")
             if gpu_id is None:
                 continue
@@ -210,22 +219,22 @@ class AMDProvider(GPUProvider):
                 continue
 
             # Usage metrics
-            usage = entry.get("usage", {}) or {}
+            usage = _as_dict(entry.get("usage"))
             gfx = max(0.0, min(100.0, _parse_value_unit(usage.get("gfx_activity", 0))))
             umc = max(0.0, min(100.0, _parse_value_unit(usage.get("umc_activity", 0))))
 
             # Power
-            power_block = entry.get("power", {}) or {}
+            power_block = _as_dict(entry.get("power"))
             socket_pwr = power_block.get("socket_power") or power_block.get("SOCKET_POWER")
             power_w = _parse_value_unit(socket_pwr) if socket_pwr else 0.0
 
             # Memory usage
-            mem_usage = entry.get("mem_usage", {}) or {}
+            mem_usage = _as_dict(entry.get("mem_usage"))
             used = mem_usage.get("used_visible_vram") or mem_usage.get("used_vram")
             vram_used = _parse_value_unit(used) if used else 0.0
 
             # Temperature (if available)
-            temp_block = entry.get("temperature", {}) or {}
+            temp_block = _as_dict(entry.get("temperature"))
             temp = temp_block.get("edge") or temp_block.get("hotspot")
             temperature = _parse_value_unit(temp) if temp else None
 
